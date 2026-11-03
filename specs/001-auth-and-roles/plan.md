@@ -1,9 +1,8 @@
 # Authentication and Roles Plan
 
 ## Endpoints
-- `POST /api/auth/login` accepts email and password; success returns an access token. Unknown email and wrong password share the same 401 response.
-- `POST /api/users` creates a user and is restricted to admins. Require non-empty name, email, password, and role; employees require one manager, while admins and managers have none.
-- These paths are proposed because the spec defines endpoint behavior but not paths. Add the chosen paths to the spec before implementation.
+- `POST /api/auth/login` accepts email and password; success returns `accessToken`. Unknown email and wrong password share the same 401 response.
+- `POST /api/users` creates a user and is restricted to admins. Require non-empty name, email, password, and role; employees require `managerId`, while admins and managers omit it or send null.
 - Use the documented JSON error envelope and status codes from `docs/TECHSTACK.md`.
 
 ## Users table
@@ -28,3 +27,4 @@
 - Sign access tokens as JWTs with `jsonwebtoken` and `JWT_SECRET`; set expiry from deployment configuration.
 - Resolve current role and active status from the user record rather than relying on stale role claims in a token.
 - Supply bootstrap admin credentials through deployment configuration; do not hardcode or log credentials or secrets.
+- Use `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD`, and `JWT_EXPIRES_IN` for the configured values.

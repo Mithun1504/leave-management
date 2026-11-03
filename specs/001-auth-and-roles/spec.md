@@ -5,7 +5,9 @@ This feature establishes user accounts, email-and-password login, access tokens,
 
 ## Scope
 - An admin creates user accounts; this feature does not define other account-management operations.
+- `POST /api/users` creates accounts. The authenticated caller must be an admin. The request contains `name`, `email`, `password`, `role`, and `managerId` for employees; `managerId` is omitted or null for admins and managers. Success returns the created account with HTTP 201.
 - Users log in with email and password and receive an access token.
+- `POST /api/auth/login` accepts `email` and `password` and returns an `accessToken` on success.
 - A valid token is required for every API endpoint except login.
 - Access to features depends on whether the user is an admin, manager, or employee.
 - One bootstrap admin account is created automatically on first start, using credentials supplied through deployment configuration.
@@ -36,9 +38,12 @@ This feature establishes user accounts, email-and-password login, access tokens,
 - Authorization depends on the user's role and the feature's defined permissions.
 - Employees have exactly one assigned manager; managers are system users.
 - The bootstrap admin credentials are supplied through deployment configuration and are not hardcoded. Subsequent starts preserve the existing bootstrap account without creating another.
+- Bootstrap credentials are configured with `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ADMIN_EMAIL`, and `BOOTSTRAP_ADMIN_PASSWORD`.
 - A valid access token expires according to a lifetime supplied through deployment configuration.
+- Token lifetime is configured with `JWT_EXPIRES_IN` and signed with `JWT_SECRET`.
 - Each request resolves the user's current account status and role; deny access if the account no longer exists or is inactive, and apply current role permissions.
 - Unknown email and incorrect password produce the same authentication failure response (401).
+- Duplicate email is rejected with HTTP 409; missing or empty required fields are rejected with HTTP 400; invalid role or manager assignment is rejected with HTTP 422.
 - Account-management operations beyond creating users are not defined in this feature.
 
 ## Acceptance criteria
