@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f6f3">
+    <title>Leave Desk</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="brand-row">
+        <a class="brand" href="/" aria-label="Leave Desk home">
+          <span class="brand-mark" aria-hidden="true">L</span>
+          <span>leave<span class="brand-light">desk</span></span>
+        </a>
+        <span class="brand-note">Time away, in good order.</span>
+      </header>
+
+      <main id="app" class="app-root">
+        <section class="login-layout">
+          <div class="login-copy">
+            <p class="eyebrow">LEAVE MANAGEMENT</p>
+            <h1>Make room for time away.</h1>
+            <p class="muted">Sign in to manage leave requests, decisions, and balances.</p>
+            <div class="login-decoration" aria-hidden="true">
+              <div class="calendar-card">
+                <span class="calendar-day">MON</span>
+                <strong>12</strong>
+                <span class="calendar-line"></span>
+                <span class="calendar-line short"></span>
+              </div>
+              <span class="decoration-dot dot-one"></span>
+              <span class="decoration-dot dot-two"></span>
+            </div>
+          </div>
+          <section class="panel login-panel" aria-labelledby="login-title">
+            <div class="panel-heading">
+              <p class="eyebrow">WELCOME BACK</p>
+              <h2 id="login-title">Sign in</h2>
+              <p class="muted">Use your work account to continue.</p>
+            </div>
+            <form id="login-form" class="form-stack">
+              <label for="login-email">Email</label>
+              <input id="login-email" name="email" type="email" autocomplete="username" required>
+              <label for="login-password">Password</label>
+              <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+              <p class="feedback" data-feedback role="alert" hidden></p>
+              <button class="button button-primary" type="submit">
+                <span>Sign in</span><span aria-hidden="true">→</span>
+              </button>
+              <p class="loading-note" data-loading role="status" aria-live="polite" hidden>Signing you in…</p>
+            </form>
+          </section>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <span>Leave Desk</span>
+        <span>Simple leave, clearly managed.</span>
+      </footer>
+    </div>
+  </body>
+</html>

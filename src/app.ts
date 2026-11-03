@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'node:path';
 import type Database from 'better-sqlite3';
 import { z } from 'zod';
 import { login } from './modules/auth/login';
@@ -9,6 +10,7 @@ import { asyncHandler, errorHandler, HttpError } from './shared/http';
 
 export function createApp(db: Database.Database) {
   const app = express();
+  app.use(express.static(path.resolve(process.cwd(), 'public')));
   app.post('/api/auth/login', express.json(), asyncHandler(async (req, res) => {
     const parsed = z.object({
       email: z.string().trim().min(1),

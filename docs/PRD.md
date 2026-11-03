@@ -36,11 +36,13 @@ Every employee has one assigned manager. A manager is also a user of the system.
 - Managers can view the requests of their team.
 
 ## Out of scope (for now)
-- Frontend or UI
 - Email or push notifications
 - Public holiday calendar management
 - Reports and analytics
 - Leave carry-forward between years
+
+## Frontend
+A minimal role-based web UI supports login, user creation, leave requests, manager decisions, and balance viewing.
 
 ## Success criteria
 - An employee can apply, a manager can decide, and the balance reflects the decision.

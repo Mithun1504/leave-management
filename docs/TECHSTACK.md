@@ -12,7 +12,9 @@
 | Testing | Jest, ts-jest and Supertest |
 | API contracts | OpenAPI 3.0 YAML files |
 
-No frontend, no Docker, no ORM. Keep dependencies minimal.
+Frontend: plain HTML, CSS and vanilla JavaScript in `public/`, served by Express at `/`. No frameworks and no build step.
+
+No Docker, no ORM. Keep dependencies minimal.
 
 ## Project layout
 ```
