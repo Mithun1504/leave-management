@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { login } from './modules/auth/login';
 import { requireAuth } from './modules/auth/middleware';
 import { createUserRouter } from './modules/auth/routes';
+import { createLeaveRouter } from './modules/leave/routes';
 import { asyncHandler, errorHandler, HttpError } from './shared/http';
 
 export function createApp(db: Database.Database) {
@@ -21,6 +22,7 @@ export function createApp(db: Database.Database) {
   app.use('/api', requireAuth(db));
   app.use(express.json());
   app.use('/api/users', createUserRouter(db));
+  app.use('/api/leave', createLeaveRouter(db));
   app.use((_req, _res, next) => next(new HttpError(404, 'NOT_FOUND', 'Endpoint not found')));
   app.use(errorHandler);
   return app;

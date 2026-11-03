@@ -24,6 +24,25 @@ const schema = `
   );
   CREATE UNIQUE INDEX IF NOT EXISTS one_bootstrap_admin
     ON users(is_bootstrap) WHERE is_bootstrap = 1;
+  CREATE INDEX IF NOT EXISTS users_manager_role ON users(manager_id, role);
+  CREATE TABLE IF NOT EXISTS leave_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL REFERENCES users(id),
+    leave_type TEXT NOT NULL CHECK (leave_type IN ('Casual', 'Sick', 'Earned')),
+    start_date TEXT NOT NULL CHECK (date(start_date) IS NOT NULL),
+    end_date TEXT NOT NULL CHECK (date(end_date) IS NOT NULL AND end_date >= start_date),
+    reason TEXT NOT NULL CHECK (length(trim(reason)) > 0),
+    status TEXT NOT NULL DEFAULT 'Pending'
+      CHECK (status IN ('Pending', 'Approved', 'Rejected'))
+  );
+  CREATE INDEX IF NOT EXISTS leave_requests_employee_dates_status
+    ON leave_requests(employee_id, start_date, end_date, status);
+  CREATE TRIGGER IF NOT EXISTS leave_requests_employee_role_insert
+    BEFORE INSERT ON leave_requests
+    WHEN (SELECT role FROM users WHERE id = NEW.employee_id) != 'employee'
+    BEGIN
+      SELECT RAISE(ABORT, 'leave request employee must have employee role');
+    END;
 `;
 
 export function openDatabase(path = process.env.DB_PATH ?? ':memory:'): Database.Database {
