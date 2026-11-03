@@ -1,0 +1,260 @@
+openapi: 3.0.3
+info:
+  title: Leave Management API
+  version: 1.0.0
+  description: Leave requests, team review, and employee balances.
+servers:
+  - url: /api
+security:
+  - BearerAuth: []
+paths:
+  /leave/requests:
+    post:
+      operationId: createLeaveRequest
+      summary: Submit a leave request
+      description: Employee only. New requests have Pending status. Overlapping pending or approved requests are rejected.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLeaveRequest'
+      responses:
+        '201':
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/BusinessRuleViolation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      operationId: listLeaveRequests
+      summary: List the caller's leave requests or manager's team requests
+      description: Employees receive their own requests. Managers receive requests from employees currently assigned to them. Admin access is denied.
+      responses:
+        '200':
+          description: Requests visible to the caller
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [requests]
+                properties:
+                  requests:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaveRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /leave/balances:
+    get:
+      operationId: getLeaveBalances
+      summary: Get the employee's current calendar-year balances
+      description: Employee only. Returns fixed yearly allocations and remaining balances for the server's current UTC calendar year.
+      responses:
+        '200':
+          description: Current-year leave balances
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [year, balances]
+                properties:
+                  year:
+                    type: integer
+                    example: 2026
+                  balances:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaveBalance'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /leave/requests/{requestId}/decision:
+    post:
+      operationId: decideLeaveRequest
+      summary: Approve or reject a pending request
+      description: Manager only, and only for an employee currently assigned to the manager. Decisions are final. Approval requires sufficient balance.
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveDecision'
+      responses:
+        '200':
+          description: Request decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaveRequest'
+        '400':
+          $ref: '#/components/responses/InvalidInput'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/BusinessRuleViolation'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LeaveType:
+      type: string
+      enum: [Casual, Sick, Earned]
+    LeaveStatus:
+      type: string
+      enum: [Pending, Approved, Rejected]
+    CreateLeaveRequest:
+      type: object
+      additionalProperties: false
+      required: [leaveType, startDate, endDate, reason]
+      properties:
+        leaveType:
+          $ref: '#/components/schemas/LeaveType'
+        startDate:
+          type: string
+          format: date
+          description: YYYY-MM-DD; today or later in server UTC.
+        endDate:
+          type: string
+          format: date
+          description: YYYY-MM-DD; on or after startDate.
+        reason:
+          type: string
+          minLength: 1
+    LeaveDecision:
+      type: object
+      additionalProperties: false
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [Approved, Rejected]
+    LeaveRequest:
+      type: object
+      required: [id, employeeId, leaveType, startDate, endDate, reason, status]
+      properties:
+        id:
+          type: integer
+        employeeId:
+          type: integer
+        leaveType:
+          $ref: '#/components/schemas/LeaveType'
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        reason:
+          type: string
+        status:
+          $ref: '#/components/schemas/LeaveStatus'
+    LeaveBalance:
+      type: object
+      required: [leaveType, allocatedDays, usedDays, remainingDays]
+      properties:
+        leaveType:
+          $ref: '#/components/schemas/LeaveType'
+        allocatedDays:
+          type: integer
+          enum: [10, 12, 15]
+          description: Casual is 12 days, Sick is 10 days, and Earned is 15 days.
+        usedDays:
+          type: integer
+          minimum: 0
+          description: Weekdays in approved requests for this leave type and year.
+        remainingDays:
+          type: integer
+          minimum: 0
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+  responses:
+    InvalidInput:
+      description: Invalid request body or path parameter
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid access token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Role or team assignment does not permit this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Leave request does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Request overlaps existing leave or is no longer pending
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BusinessRuleViolation:
+      description: Leave request violates a business rule, including insufficient balance for approval
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
